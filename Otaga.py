@@ -8,6 +8,7 @@ from Otaga import *;
 Variables: dict[str, Type.Recon_Variable] = {};
 Semicolons: list[Type.Recon_Base] = [];
 Fors: list[Type.Recon_For] = [];
+Whitespaces: list[Type.Recon_Base] = [];
 
 Errors: list[str] = [];
 Warnings: list[str] = [];
@@ -47,6 +48,7 @@ def Verify(Otaga: Type.Otaga_Config) -> bool:
 				Recon_Concat(Python.Recon.Get.Variables(f"{P}/{f}"));
 				Recon_Concat_Semicolon(Python.Recon.Get.Semicolon(f"{P}/{f}"));
 				Recon_Concat_Fors(Python.Recon.Get.Fors(f"{P}/{f}"));
+				Recon_Concat_Whitespaces(Python.Recon.Get.Whitespaces(f"{P}/{f}"));
 
 		for f in l[0]: Recon_Recursive(f"{P}/{f}");
 
@@ -68,6 +70,10 @@ def Verify(Otaga: Type.Otaga_Config) -> bool:
 		global Fors;
 		Fors += S;
 
+	def Recon_Concat_Whitespaces(S: list[Type.Recon_Base]) -> None:
+		global Whitespaces;
+		Whitespaces += S;
+
 	for watched in Otaga["Watch"]:
 		Recon_Recursive(f"{watched}");
 	
@@ -86,6 +92,8 @@ def Verify(Otaga: Type.Otaga_Config) -> bool:
 		Errors.append(f"Missing Semicolon!\n{Culprit(semicolon)}");
 	for badfor in Fors:
 		Errors.append(f"Variable \"{badfor["Variable"]}\" used in For Loop isn't Lowercase!\n{Culprit(badfor)}");
+	for whitespace in Whitespaces:
+		Errors.append(f"Spaces are used instead of tabs!\nFile {whitespace['Path'][0]}, line {whitespace['Line'][0]}");
 
 	for warning in Warnings: Log.Warning(warning);
 	for error in Errors: Log.Error(error);

@@ -13,6 +13,8 @@ rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \S]+(?=$)", flags=re.MULTI
 
 rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()", flags=re.MULTILINE | re.UNICODE);
 
+rWHTIESPACE: re.Pattern[str] = re.compile(r"^[\t ]+(?=\w)", flags=re.MULTILINE | re.UNICODE);
+
 
 
 
@@ -127,6 +129,27 @@ class Get:
 							"Variable": var
 						}));
 		return Fors;
+
+	@staticmethod
+	def Whitespaces(P: str) -> list[Type.Recon_Base]:
+		D: str = cast(str, File.Read(P));
+		Data: list[str] = [x.replace("¤N¤", "\\n") for x in D.replace("\\n", "¤N¤").split("\n")];
+
+		Whitespaces: list[Type.Recon_Base] = [];
+		for ln, l in enumerate(Data, start=1):
+			for m in rWHTIESPACE.finditer(l):
+				string: str = l[m.start():m.end()];
+				if (" " not in string): continue;
+
+				Whitespaces.append(cast(Type.Recon_Base, {
+					"Path": [P],
+					"Line": [ln],
+					"String": [string]
+				}));
+
+		return Whitespaces;
+
+
 
 __all__: list[str] = [
 	"Get"
