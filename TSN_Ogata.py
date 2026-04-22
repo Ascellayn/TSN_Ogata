@@ -10,6 +10,8 @@ Fors: list[Type.Recon_For] = [];
 Whitespaces: list[Type.Recon_Base] = [];
 Spacings: list[Type.Recon_Base] = [];
 
+Processed: int = 0;
+Processed_Unix: float;
 Errors: list[str] = [];
 Warnings: list[str] = [];
 
@@ -55,11 +57,14 @@ def Execute() -> bool:
 
 
 def Verify(Ogata: Type.Ogata_Config) -> bool:
+	global Processed_Unix; Processed_Unix = Time.Get_Unix(True);
 	def Recon_Recursive(P: str) -> None:
-		global Semicolons, Fors, Whitespaces, Spacings;
+		global Processed, Semicolons, Fors, Whitespaces, Spacings;
 		l: File.Folder_Contents = File.List(P);
 		for f in l[1]:
 			if (f.endswith(".py")):
+				Processed += 1;
+
 				Recon_Concat_Variables(Python.Recon.Get.Variables(f"{P}/{f}"));
 				Semicolons += Python.Recon.Get.Semicolon(f"{P}/{f}");
 				Fors += Python.Recon.Get.Fors(f"{P}/{f}");
@@ -105,15 +110,16 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 	for warning in Warnings: Log.Warning(warning);
 	for error in Errors: Log.Error(error);
 
+	header: str = f"Ogata processed {Processed} files in {Time.Elapsed_String(Time.Get_Unix(True) - Processed_Unix, Show_Until=-2)}:";
 	if (len(Errors) > 0):
-		Log.Critical(f"Ogata finished: {len(Errors)} Errors - {len(Warnings)} Warnings");
+		Log.Critical(f"{header}: {len(Errors)} Errors - {len(Warnings)} Warnings");
 		exit(1);
 
 	if (len(Warnings) > 0):
-		Log.Error(f"Ogata finished: {len(Warnings)} Warnings");
+		Log.Error(f"{header}: {len(Warnings)} Warnings");
 		exit(0);
 
-	Log.Info(f"Ogata finished: No errors!");
+	Log.Info(f"{header}: No errors!");
 	return True;
 
 

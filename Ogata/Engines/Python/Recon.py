@@ -5,8 +5,8 @@ from ... import Type;
 
 
 
-rVAR: re.Pattern[str] = re.compile(r"([A-Za-z_\.]*(?=: [\S ]+ = ))|([[A-Za-z_\.]*(?= = ))", flags=re.MULTILINE | re.UNICODE);
-rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\] \|]*(?==)", flags=re.MULTILINE | re.UNICODE);
+rVAR: re.Pattern[str] = re.compile(r"([A-Za-z_\.]+(?=: [\S ]+ = ))|([[A-Za-z_\.]+(?= = ))|([A-Za-z_\.]+(?=: [\w\.\[\]\"\']+;$))", flags=re.MULTILINE | re.UNICODE);
+rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\] \|]*(?==|;?$)", flags=re.MULTILINE | re.UNICODE);
 rVAR_For: re.Pattern[str] = re.compile(r"(?<=for )[a-zA-Z_, ]+(?= in)", flags=re.MULTILINE | re.UNICODE);
 
 rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \S]+(?=$)", flags=re.MULTILINE | re.UNICODE);
@@ -41,10 +41,12 @@ class Get:
 					if (g.startswith("Config.")): continue; # Ignore TSNA Config.*
 
 					Log.Debug(f"lnG: {lnG} - gn: {gn} - g: {g}");
-					if (gn == 0):
+					if (gn == 0 or gn == 2):
 						ms = rVAR_Type.findall(l);
 						if (not ms): continue; # This check is here because cosmic rays. I honestly don't know the regex101 is entirely fine but in practice it's not.
-						typeData: str = ms[0].split(":")[1].strip();
+						typeData: str = ms[0].split(":");
+						if (len(typeData) < 2): continue; # I am horrible at regex
+						typeData = typeData[1].strip();
 
 						lnG = 0;
 
