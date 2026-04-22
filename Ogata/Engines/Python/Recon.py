@@ -9,7 +9,7 @@ rVAR: re.Pattern[str] = re.compile(r"([A-Za-z_\.]+(?=: [\S ]+ = ))|([[A-Za-z_\.]
 rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\] \|]*(?==|;?$)", flags=re.MULTILINE | re.UNICODE);
 rVAR_For: re.Pattern[str] = re.compile(r"(?<=for )[a-zA-Z_, ]+(?= in)", flags=re.MULTILINE | re.UNICODE);
 
-rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \S]+(?=$)", flags=re.MULTILINE | re.UNICODE);
+rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:\*]+(?=$)", flags=re.MULTILINE | re.UNICODE);
 
 rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()", flags=re.MULTILINE | re.UNICODE);
 
@@ -21,17 +21,52 @@ rIMPORT_Bool: re.Pattern[str] = re.compile(r"from.+|import.+", flags=re.MULTILIN
 
 
 
+def _Digest_File(String: str) -> list[str]:
+	""" Returns a digestible file for Recon """
+	Data: list[str] = [x.replace("¤N¤", "\\n") for x in String.replace("\\n", "¤N¤").split("\n")];
+
+	# Clear DocStrings
+	inDSTR: bool = False;
+	for ln, l in enumerate(Data):
+		quotes: list[str] = l.split(f"\"\"\"");
+		if (len(quotes) == 1 and not inDSTR): continue;
+		else:
+			# You could use math here to calculate the final state of inDSTR but I'm lazy
+			for i in range (len(quotes) - 1): # pyright: ignore[reportUnusedVariable]
+				inDSTR = False if (inDSTR) else True;
+				Data[ln] = f"";
+		if (inDSTR): Data[ln] = "";
+
+	return Data;
+
+
+
 class Get:
 	@staticmethod
 	def Variables(P: str) -> dict[str, Type.Recon_Variable]:
-		D: str = cast(str, File.Read(P));
-		Data: list[str] = [x.replace("¤N¤", "\\n") for x in D.replace("\\n", "¤N¤").split("\n")];
+		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
 
 		Variables: dict[str, Type.Recon_Variable] = {};
-		Function: str = "--ROOT--";
+		Functions: list[str] = ["--ROOT--"];
+		White_Last: int = 0;
+
 		for ln, l in enumerate(Data, start=1):
+			# Function Context Detection
 			findfunc: list[str] = rFUNCTION.findall(l);
-			if (len(findfunc) > 0): Function = findfunc[0];
+			white_next: list[str] = rWHITESPACE.findall(Data[min(ln, len(Data) - 1)]); # Remeber ln starts at 1 not 0
+			white_curr: list[str] = rWHITESPACE.findall(Data[ln - 1]);
+
+			if (len(findfunc) > 0):
+				Functions.append(findfunc[0]);
+				if (len(white_next) > 0):
+					White_Last = len(white_next[0]);
+			else:
+				if (len(white_curr) > 0):
+					if (len(white_curr[0]) < White_Last):
+						White_Last = len(white_curr[0]);
+						Functions.pop();
+
+
 
 			lnG: int = -1;
 			for m in rVAR.finditer(l): # pyright: ignore[reportUnusedVariable]
@@ -58,8 +93,8 @@ class Get:
 						Variables[g]["Path"].append(P);
 						Variables[g]["Line"].append(ln);
 						Variables[g]["String"].append(l);
-						if (Function not in Variables[g]["Count"].keys()): Variables[g]["Count"][Function] = 0;
-						Variables[g]["Count"][Function] += 1;
+						if (Functions[-1] not in Variables[g]["Count"].keys()): Variables[g]["Count"][Functions[-1]] = 0;
+						Variables[g]["Count"][Functions[-1]] += 1;
 
 						Variables[g]["Type"].add(typeData);
 					else:
@@ -75,8 +110,8 @@ class Get:
 						Variables[g]["Path"].append(P);
 						Variables[g]["Line"].append(ln);
 						Variables[g]["String"].append(l);
-						if (Function not in Variables[g]["Count"].keys()): Variables[g]["Count"][Function] = 0;
-						Variables[g]["Count"][Function] += 1;
+						if (Functions[-1] not in Variables[g]["Count"].keys()): Variables[g]["Count"][Functions[-1]] = 0;
+						Variables[g]["Count"][Functions[-1]] += 1;
 
 				Log.Debug(f"{ln} {m.start()}:{m.end()} @ {m.group()}");
 
@@ -86,8 +121,7 @@ class Get:
 
 	@staticmethod
 	def Semicolon(P: str) -> list[Type.Recon_Base]:
-		D: str = cast(str, File.Read(P));
-		Data: list[str] = [x.replace("¤N¤", "\\n") for x in D.replace("\\n", "¤N¤").split("\n")];
+		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
 
 		Semicolons: list[Type.Recon_Base] = [];
 		for ln, l in enumerate(Data):
@@ -121,8 +155,7 @@ class Get:
 
 	@staticmethod
 	def Fors(P: str) -> list[Type.Recon_For]:
-		D: str = cast(str, File.Read(P));
-		Data: list[str] = [x.replace("¤N¤", "\\n") for x in D.replace("\\n", "¤N¤").split("\n")];
+		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
 
 		Fors: list[Type.Recon_For] = [];
 		for ln, l in enumerate(Data, start=1):
@@ -142,8 +175,7 @@ class Get:
 
 	@staticmethod
 	def Whitespaces(P: str) -> list[Type.Recon_Base]:
-		D: str = cast(str, File.Read(P));
-		Data: list[str] = [x.replace("¤N¤", "\\n") for x in D.replace("\\n", "¤N¤").split("\n")];
+		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
 
 		Whitespaces: list[Type.Recon_Base] = [];
 		for ln, l in enumerate(Data, start=1):
@@ -163,8 +195,7 @@ class Get:
 
 	@staticmethod
 	def Spacings(P: str) -> list[Type.Recon_Base]:
-		D: str = cast(str, File.Read(P));
-		Data: list[str] = [x.replace("¤N¤", "\\n") for x in D.replace("\\n", "¤N¤").split("\n")];
+		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
 
 		Spacings: list[Type.Recon_Base] = [];
 
