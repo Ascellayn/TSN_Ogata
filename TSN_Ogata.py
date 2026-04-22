@@ -30,12 +30,20 @@ def Culprit(RC: Type.Recon_Base) -> str:
 
 def Execute() -> bool:
 	# Config Checks
-	Log.Stateless("Reading Otaga Config...");
-	try: C: Type.Otaga_Config = cast(Type.Otaga_Config, File.JSON_Read("Config.json"));
+	if (not File.Exists("Ogata.json")):
+		if (not File.Exists("../Ogata.json")):
+			Log.Critical(f"Ogata Configuration file is missing!");
+			exit(2);
+		else: cpath: str = "../Ogata.json";
+	else: cpath: str = "Ogata.json";
+
+	Log.Stateless("Reading Ogata Config...");
+	try: C: Type.Ogata_Config = cast(Type.Ogata_Config, File.JSON_Read(cpath));
 	except Exception as E: Log.Awaited().EXCEPTION(E); exit(1);
+	del cpath;
 
 		# Validation
-	if (C == {}): Log.Critical(f"Otaga wasn't configured! Quitting."); exit(1);
+	if (C == {}): Log.Critical(f"Ogata wasn't configured! Quitting."); exit(1);
 	if ("Watch" not in C.keys()): Log.Critical(f"Missing \"Watch\" key! Quitting."); exit(1);
 	if (type(C["Watch"]) != list): Log.Critical(f"\"Watch\" key contains an invalid data type! Quitting."); exit(1);
 
@@ -46,7 +54,7 @@ def Execute() -> bool:
 
 
 
-def Verify(Otaga: Type.Otaga_Config) -> bool:
+def Verify(Ogata: Type.Ogata_Config) -> bool:
 	def Recon_Recursive(P: str) -> None:
 		l: File.Folder_Contents = File.List(P);
 		for f in l[1]:
@@ -99,7 +107,7 @@ def Verify(Otaga: Type.Otaga_Config) -> bool:
 
 
 
-	for watched in Otaga["Watch"]:
+	for watched in Ogata["Watch"]:
 		Recon_Recursive(f"{watched}");
 	
 	for var in Variables.items():
@@ -126,14 +134,14 @@ def Verify(Otaga: Type.Otaga_Config) -> bool:
 	for error in Errors: Log.Error(error);
 
 	if (len(Errors) > 0):
-		Log.Critical(f"Otaga finished: {len(Errors)} Errors - {len(Warnings)} Warnings");
+		Log.Critical(f"Ogata finished: {len(Errors)} Errors - {len(Warnings)} Warnings");
 		exit(1);
 
 	if (len(Warnings) > 0):
-		Log.Error(f"Otaga finished: {len(Warnings)} Warnings");
+		Log.Error(f"Ogata finished: {len(Warnings)} Warnings");
 		exit(0);
 
-	Log.Info(f"Otaga finished: No errors!");
+	Log.Info(f"Ogata finished: No errors!");
 	return True;
 
 

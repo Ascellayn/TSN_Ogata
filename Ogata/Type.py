@@ -4,7 +4,7 @@ from typing import TypedDict, Optional; # pyright: ignore[reportUnusedImport]
 
 
 
-class Otaga_Config(TypedDict):
+class Ogata_Config(TypedDict):
 	_Version: list[int] | tuple[int, ...];
 	Watch: list[str];
 
@@ -31,6 +31,6 @@ class Recon_For(Recon_Base):
 
 
 __all__: list[str] = [
-	"Otaga_Config",
+	"Ogata_Config",
 	"Recon_Base", "Recon_Variable"
 ];

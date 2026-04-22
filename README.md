@@ -8,12 +8,12 @@
 
 
 
-# About Otaga
-Otaga is a strict linter for Python, it is based off the [TSN Coding Style Guidelines](https://sirio-network.com/guideline/code-style) *(which aren't available yet)* and is meant to enforce strict typing, spacing and naming.  
+# About Ogata
+Ogata is a strict linter for Python, it is based off the [TSN Coding Style Guidelines](https://sirio-network.com/guideline/code-style) *(which aren't available yet)* and is meant to enforce strict typing, spacing and naming.  
 
 **Note of Warning**  
 My coding style is VERY non-standard. It is ***NOT recommended to use this linter*** for your own projects __**[!] AT ALL [!]**__  
-If you're interacting with TSN's projects you will have to cry and deal with Otaga. Otherwise it's not worth putting effort into using this unless you're a masochist. Use [ruff](https://docs.astral.sh/ruff/linter/) instead or something.  
+If you're interacting with TSN's projects you will have to cry and deal with Ogata. Otherwise it's not worth putting effort into using this unless you're a masochist. Use [ruff](https://docs.astral.sh/ruff/linter/) instead or something.  
 
 <br>
 
