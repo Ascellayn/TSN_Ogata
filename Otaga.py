@@ -4,11 +4,11 @@ from Otaga import *;
 
 
 
-
 Variables: dict[str, Type.Recon_Variable] = {};
 Semicolons: list[Type.Recon_Base] = [];
 Fors: list[Type.Recon_For] = [];
 Whitespaces: list[Type.Recon_Base] = [];
+Spacings: list[Type.Recon_Base] = [];
 
 Errors: list[str] = [];
 Warnings: list[str] = [];
@@ -23,6 +23,10 @@ def Culprit(RC: Type.Recon_Base) -> str:
 		Text += f"File {RC['Path'][i]}, line {RC['Line'][i]}\n\t\"{RC['String'][i].strip()}\"\n";
 
 	return Text;
+
+
+
+
 
 def Execute() -> bool:
 	# Config Checks
@@ -40,6 +44,8 @@ def Execute() -> bool:
 
 
 
+
+
 def Verify(Otaga: Type.Otaga_Config) -> bool:
 	def Recon_Recursive(P: str) -> None:
 		l: File.Folder_Contents = File.List(P);
@@ -49,8 +55,11 @@ def Verify(Otaga: Type.Otaga_Config) -> bool:
 				Recon_Concat_Semicolon(Python.Recon.Get.Semicolon(f"{P}/{f}"));
 				Recon_Concat_Fors(Python.Recon.Get.Fors(f"{P}/{f}"));
 				Recon_Concat_Whitespaces(Python.Recon.Get.Whitespaces(f"{P}/{f}"));
+				Recon_Concat_Spacings(Python.Recon.Get.Spacings(f"{P}/{f}"));
 
 		for f in l[0]: Recon_Recursive(f"{P}/{f}");
+
+
 
 	def Recon_Concat(V: dict[str, Type.Recon_Variable]) -> None:
 		global Variables;
@@ -62,17 +71,33 @@ def Verify(Otaga: Type.Otaga_Config) -> bool:
 					else: Variables[key]["Count"][func] = V[key]["Count"][func];
 				for t in V[key]["Type"]: Variables[key]["Type"].add(t);
 
+
+
 	def Recon_Concat_Semicolon(S: list[Type.Recon_Base]) -> None:
 		global Semicolons;
 		Semicolons += S;
+
+
 
 	def Recon_Concat_Fors(S: list[Type.Recon_For]) -> None:
 		global Fors;
 		Fors += S;
 
+
+
 	def Recon_Concat_Whitespaces(S: list[Type.Recon_Base]) -> None:
 		global Whitespaces;
 		Whitespaces += S;
+
+
+
+	def Recon_Concat_Spacings(S: list[Type.Recon_Base]) -> None:
+		global Spacings;
+		Spacings += S;
+
+
+
+
 
 	for watched in Otaga["Watch"]:
 		Recon_Recursive(f"{watched}");
@@ -94,6 +119,8 @@ def Verify(Otaga: Type.Otaga_Config) -> bool:
 		Errors.append(f"Variable \"{badfor["Variable"]}\" used in For Loop isn't Lowercase!\n{Culprit(badfor)}");
 	for whitespace in Whitespaces:
 		Errors.append(f"Spaces are used instead of tabs!\nFile {whitespace['Path'][0]}, line {whitespace['Line'][0]}");
+	for spacing in Spacings:
+		Errors.append(f"Bad spacing: Must be 0, 3, 5, 8 or 10 linebreaks long, got {spacing['String'][0]}.\nFile {spacing['Path'][0]}, line {spacing['Line'][0]}");
 
 	for warning in Warnings: Log.Warning(warning);
 	for error in Errors: Log.Error(error);

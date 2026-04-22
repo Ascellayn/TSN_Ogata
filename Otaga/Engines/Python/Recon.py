@@ -15,6 +15,8 @@ rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()", flags=re.M
 
 rWHTIESPACE: re.Pattern[str] = re.compile(r"^[\t ]+(?=\w)", flags=re.MULTILINE | re.UNICODE);
 
+rIMPORT_Bool: re.Pattern[str] = re.compile(r"from.+|import.+", flags=re.MULTILINE | re.UNICODE);
+
 
 
 
@@ -78,6 +80,8 @@ class Get:
 
 		return Variables;
 
+
+
 	@staticmethod
 	def Semicolon(P: str) -> list[Type.Recon_Base]:
 		D: str = cast(str, File.Read(P));
@@ -111,6 +115,8 @@ class Get:
 
 		return Semicolons;
 
+
+
 	@staticmethod
 	def Fors(P: str) -> list[Type.Recon_For]:
 		D: str = cast(str, File.Read(P));
@@ -130,6 +136,8 @@ class Get:
 						}));
 		return Fors;
 
+
+
 	@staticmethod
 	def Whitespaces(P: str) -> list[Type.Recon_Base]:
 		D: str = cast(str, File.Read(P));
@@ -148,6 +156,54 @@ class Get:
 				}));
 
 		return Whitespaces;
+
+
+
+	@staticmethod
+	def Spacings(P: str) -> list[Type.Recon_Base]:
+		D: str = cast(str, File.Read(P));
+		Data: list[str] = [x.replace("¤N¤", "\\n") for x in D.replace("\\n", "¤N¤").split("\n")];
+
+		Spacings: list[Type.Recon_Base] = [];
+
+		cspacing: int = 0;
+		last: int = -1;
+		for ln, l in enumerate(Data, start=1):
+			if (l == ""): cspacing += 1; continue;
+			if (rIMPORT_Bool.match(l)):
+				last = 0;
+				if (cspacing not in [0, 3, 5, 8, 10] and (cspacing > 2)):
+					Spacings.append({
+						"Path": [P],
+						"Line": [ln],
+						"String": [str(cspacing)]
+					});
+				cspacing = 0;
+			if (len(rFUNCTION.findall(l)) > 0):
+				last = 1;
+				if (cspacing not in [0, 3, 5, 8, 10]):
+					Spacings.append({
+						"Path": [P],
+						"Line": [ln],
+						"String": [str(cspacing)]
+					});
+
+			# Decorator Case
+			if (l.strip().startswith("@")): continue;
+			if (last == 0):
+				if (cspacing not in [0, 3, 5, 8, 10] and (cspacing > 2)):
+					Spacings.append({
+						"Path": [P],
+						"Line": [ln],
+						"String": [str(cspacing)]
+					});
+			cspacing = 0;
+
+
+		return Spacings;
+
+
+
 
 
 
