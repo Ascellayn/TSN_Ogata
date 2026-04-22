@@ -13,7 +13,7 @@ rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \S]+(?=$)", flags=re.MULTI
 
 rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()", flags=re.MULTILINE | re.UNICODE);
 
-rWHTIESPACE: re.Pattern[str] = re.compile(r"^[\t ]+(?=\w)", flags=re.MULTILINE | re.UNICODE);
+rWHITESPACE: re.Pattern[str] = re.compile(r"^[\t ]+(?=\w)", flags=re.MULTILINE | re.UNICODE);
 
 rIMPORT_Bool: re.Pattern[str] = re.compile(r"from.+|import.+", flags=re.MULTILINE | re.UNICODE);
 
@@ -147,7 +147,7 @@ class Get:
 
 		Whitespaces: list[Type.Recon_Base] = [];
 		for ln, l in enumerate(Data, start=1):
-			for m in rWHTIESPACE.finditer(l):
+			for m in rWHITESPACE.finditer(l):
 				string: str = l[m.start():m.end()];
 				if (" " not in string): continue;
 
