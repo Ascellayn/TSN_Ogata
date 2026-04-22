@@ -112,14 +112,14 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 
 	header: str = f"Ogata processed {Processed} files in {Time.Elapsed_String(Time.Get_Unix(True) - Processed_Unix, Show_Until=-2)}:";
 	if (len(Errors) > 0):
-		Log.Critical(f"{header}: {len(Errors)} Errors - {len(Warnings)} Warnings");
+		Log.Critical(f"{header} {len(Errors)} Errors - {len(Warnings)} Warnings");
 		exit(1);
 
 	if (len(Warnings) > 0):
-		Log.Error(f"{header}: {len(Warnings)} Warnings");
+		Log.Error(f"{header} {len(Warnings)} Warnings");
 		exit(0);
 
-	Log.Info(f"{header}: No errors!");
+	Log.Info(f"{header} No errors!");
 	return True;
 
 
