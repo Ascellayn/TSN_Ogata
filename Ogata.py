@@ -1,4 +1,4 @@
-from Otaga import *;
+from Ogata import *;
 
 
 

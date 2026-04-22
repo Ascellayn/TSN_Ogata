@@ -1,4 +1,4 @@
-## Otaga © (2026) - The Sirio Network / Ascellayn | `TSN License 2.1 - Base`
+## Ogata © (2026) - The Sirio Network / Ascellayn | `TSN License 2.1 - Base`
 
 **__The Sirio Network License 2.1 - Strict__**  
 *https://sirio-network.com/license/2.1 | Published 01/12/2025 at 01:45:46*  
