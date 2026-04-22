@@ -102,6 +102,10 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 		for t in var[1]["Type"]:
 			if ("Any" in t): Warnings.append(f"{var[0]}: Type \"{t}\" contains \"Any\" which is discouraged.\n{Culprit(var[1])}");
 
+	# debug: to be removed
+	for key in Variables.keys(): Variables[key]["Type"] = list(Variables[key]["Type"]); # pyright: ignore[reportGeneralTypeIssues]
+	File.JSON_Write("DEBUG.json", Variables);
+
 	for e in Semicolons: Errors.append(f"Missing Semicolon!\n{Culprit(e)}");
 	for e in Fors: Errors.append(f"Variable \"{e["Variable"]}\" used in For Loop isn't Lowercase!\n{Culprit(e)}");
 	for e in Whitespaces: Errors.append(f"Spaces are used instead of tabs!\nFile {e['Path'][0]}, line {e['Line'][0]}");
