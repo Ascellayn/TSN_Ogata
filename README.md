@@ -1,6 +1,6 @@
 <p align="center">
-	<img src="https://sirio-network.com/Root/Banner/Unknown.png" alt="Otaga Banner">
-	<h2 align="center">TSN Otaga, The Sirio Network's Linter</h2>
+	<img src="https://sirio-network.com/Root/Banner/Unknown.png" alt="Ogata Banner">
+	<h2 align="center">TSN Ogata, The Sirio Network's Linter</h2>
 </p>
 <p align="center">
 	IN EXTREMELY HEAVY WORK IN PROGRESS, DO NOT USE FOR NOW
