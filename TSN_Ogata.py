@@ -56,20 +56,21 @@ def Execute() -> bool:
 
 def Verify(Ogata: Type.Ogata_Config) -> bool:
 	def Recon_Recursive(P: str) -> None:
+		global Semicolons, Fors, Whitespaces, Spacings;
 		l: File.Folder_Contents = File.List(P);
 		for f in l[1]:
 			if (f.endswith(".py")):
-				Recon_Concat(Python.Recon.Get.Variables(f"{P}/{f}"));
-				Recon_Concat_Semicolon(Python.Recon.Get.Semicolon(f"{P}/{f}"));
-				Recon_Concat_Fors(Python.Recon.Get.Fors(f"{P}/{f}"));
-				Recon_Concat_Whitespaces(Python.Recon.Get.Whitespaces(f"{P}/{f}"));
-				Recon_Concat_Spacings(Python.Recon.Get.Spacings(f"{P}/{f}"));
+				Recon_Concat_Variables(Python.Recon.Get.Variables(f"{P}/{f}"));
+				Semicolons += Python.Recon.Get.Semicolon(f"{P}/{f}");
+				Fors += Python.Recon.Get.Fors(f"{P}/{f}");
+				Whitespaces += Python.Recon.Get.Whitespaces(f"{P}/{f}");
+				Spacings += Python.Recon.Get.Spacings(f"{P}/{f}");
 
 		for f in l[0]: Recon_Recursive(f"{P}/{f}");
 
 
 
-	def Recon_Concat(V: dict[str, Type.Recon_Variable]) -> None:
+	def Recon_Concat_Variables(V: dict[str, Type.Recon_Variable]) -> None:
 		global Variables;
 		for key in V.keys():
 			if (not key in Variables.keys()): Variables[key] = V[key];
@@ -81,35 +82,11 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 
 
 
-	def Recon_Concat_Semicolon(S: list[Type.Recon_Base]) -> None:
-		global Semicolons;
-		Semicolons += S;
 
 
 
-	def Recon_Concat_Fors(S: list[Type.Recon_For]) -> None:
-		global Fors;
-		Fors += S;
+	for w in Ogata["Watch"]: Recon_Recursive(f"{w}");
 
-
-
-	def Recon_Concat_Whitespaces(S: list[Type.Recon_Base]) -> None:
-		global Whitespaces;
-		Whitespaces += S;
-
-
-
-	def Recon_Concat_Spacings(S: list[Type.Recon_Base]) -> None:
-		global Spacings;
-		Spacings += S;
-
-
-
-
-
-	for watched in Ogata["Watch"]:
-		Recon_Recursive(f"{watched}");
-	
 	for var in Variables.items():
 		if (var[1]["Temporary"]): continue;
 		if (len(var[1]["Type"]) == 0): Errors.append(f"{var[0]}: Undefined Type! \n{Culprit(var[1])}");
@@ -118,17 +95,12 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 			if (var[1]["Constant"] and var[1]["Count"][func] > 1): Errors.append(f"{var[0]}: Constant redefined {var[1]["Count"]} times!\n{Culprit(var[1])}");
 
 		for t in var[1]["Type"]:
-			if ("Any" in t):
-				Warnings.append(f"{var[0]}: Type \"{t}\" contains \"Any\" which is discouraged.\n{Culprit(var[1])}");
-	
-	for semicolon in Semicolons:
-		Errors.append(f"Missing Semicolon!\n{Culprit(semicolon)}");
-	for badfor in Fors:
-		Errors.append(f"Variable \"{badfor["Variable"]}\" used in For Loop isn't Lowercase!\n{Culprit(badfor)}");
-	for whitespace in Whitespaces:
-		Errors.append(f"Spaces are used instead of tabs!\nFile {whitespace['Path'][0]}, line {whitespace['Line'][0]}");
-	for spacing in Spacings:
-		Errors.append(f"Bad spacing: Must be 0, 3, 5, 8 or 10 linebreaks long, got {spacing['String'][0]}.\nFile {spacing['Path'][0]}, line {spacing['Line'][0]}");
+			if ("Any" in t): Warnings.append(f"{var[0]}: Type \"{t}\" contains \"Any\" which is discouraged.\n{Culprit(var[1])}");
+
+	for e in Semicolons: Errors.append(f"Missing Semicolon!\n{Culprit(e)}");
+	for e in Fors: Errors.append(f"Variable \"{e["Variable"]}\" used in For Loop isn't Lowercase!\n{Culprit(e)}");
+	for e in Whitespaces: Errors.append(f"Spaces are used instead of tabs!\nFile {e['Path'][0]}, line {e['Line'][0]}");
+	for e in Spacings: Errors.append(f"Bad spacing: Must be 0, 3, 5, 8 or 10 linebreaks long, got {e['String'][0]}.\nFile {e['Path'][0]}, line {e['Line'][0]}");
 
 	for warning in Warnings: Log.Warning(warning);
 	for error in Errors: Log.Error(error);
