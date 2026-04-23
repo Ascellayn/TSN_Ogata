@@ -136,7 +136,8 @@ class Get:
 		for ln, l in enumerate(Data):
 			for m in rSTRING.finditer(l): # Replace all content inside strings with something else in the case that a sneaky # is in...
 				for i in range(m.start(), m.end()):
-					l = l[:i] + "$" + l[i + 1:];
+					if (l[i:i + 1] != "#"): continue;
+					l = l[:i] + "¤" + l[i + 1:];
 			for m in rCOMMENT.finditer(l):
 				l = l[:m.start()];
 

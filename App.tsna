@@ -7,7 +7,7 @@
 	"License_Year": "2026",
 	"Codename": "TSN_Ogata",
 	"Branch": "Azure",
-	"Version": [0,3,10],
+	"Version": [0,3,11],
 	"Version_Prefix": "",
 	"Version_Suffix": "_poc",
 	"TSNA": [6,1,0],
