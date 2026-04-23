@@ -6,11 +6,11 @@ from ... import Type;
 
 
 rVAR: re.Pattern[str] = re.compile(r"([A-Za-z_\.]+(?=: [\S ]+ = ))|([[A-Za-z_\.]+(?= = ))|([A-Za-z_\.]+(?=: [\w\.\[\]\"\']+;$))|(?:(?<=def) \w+\()(.+(?=\):|\) ))");
-rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\] \|]*(?==|;?$)");
+rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\] \|/]*(?==|;?$)");
 rVAR_For: re.Pattern[str] = re.compile(r"(?<=for )[a-zA-Z_, ]+(?= in)");
-rVAR_Func: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:]+(?=$)");
+rVAR_Func: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:/]+(?=$)");
 
-rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:\*]+(?=$)");
+rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:\*/]+(?=$)");
 
 rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()");
 
@@ -78,9 +78,14 @@ class Get:
 
 					Log.Debug(f"lnG: {lnG} - gn: {gn} - g: {g}");
 					if (gn in [0, 2, 3]):
-						Log.Debug(f"{l.strip()} (line {ln}) | gn: {gn} | g: {g}");
+						Log.Debug(f"{l.strip()} | gn: {gn} | g: {g}\n {P}, line {ln}");
 						ms = rVAR_Type.findall(g if (gn == 3) else l);
-						if (g in ["else", "elif"]): continue; # Banned "detected variable names"
+						if (g in ["else", "elif", "self"]): continue; # Banned "detected variable names"
+						if (len(ms) < 2):
+							Log.Critical("debug: ms under 2 and ignored line:");
+							Log.Stateless(f"{l.strip()} | gn: {gn} | g: {g}\n {P}, line {ln}");
+							continue;
+
 						typeData: str = ms[0].split(":");
 						if (len(typeData) < 2): continue; # I am horrible at regex
 						typeData = typeData[1].strip();
