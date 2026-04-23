@@ -10,7 +10,8 @@ rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\]
 rVAR_For: re.Pattern[str] = re.compile(r"(?<=for )[a-zA-Z_, ]+(?= in)");
 rVAR_Func: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:/]+(?=$)");
 
-rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \S]+(?=$)");
+rCOMMENT: re.Pattern[str] = re.compile(r"#.*$");
+rSTRING: re.Pattern[str] = re.compile(r"[\"\'][^\"\'\\]*(?:\\.[^\"\'\\]*)*[\"\']");
 
 rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()");
 
@@ -133,8 +134,12 @@ class Get:
 
 		Semicolons: list[Type.Recon_Base] = [];
 		for ln, l in enumerate(Data):
-			for m in rComment.finditer(l):
+			for m in rSTRING.finditer(l): # Replace all content inside strings with something else in the case that a sneaky # is in...
+				for i in range(m.start(), m.end()):
+					l = l[:i] + "$" + l[i + 1:];
+			for m in rCOMMENT.finditer(l):
 				l = l[:m.start()];
+
 			Data[ln] = l.strip();
 
 		Complex: int = 0;
