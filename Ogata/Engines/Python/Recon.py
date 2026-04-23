@@ -10,7 +10,7 @@ rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\]
 rVAR_For: re.Pattern[str] = re.compile(r"(?<=for )[a-zA-Z_, ]+(?= in)");
 rVAR_Func: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:/]+(?=$)");
 
-rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:\*/]+(?=$)");
+rComment: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \S]+(?=$)");
 
 rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()");
 
@@ -78,17 +78,18 @@ class Get:
 
 					Log.Debug(f"lnG: {lnG} - gn: {gn} - g: {g}");
 					if (gn in [0, 2, 3]):
-						Log.Debug(f"{l.strip()} | gn: {gn} | g: {g}\n {P}, line {ln}");
-						ms = rVAR_Type.findall(g if (gn == 3) else l);
 						if (g in ["else", "elif", "self"]): continue; # Banned "detected variable names"
-						if (len(ms) < 2):
-							Log.Critical("debug: ms under 2 and ignored line:");
-							Log.Stateless(f"{l.strip()} | gn: {gn} | g: {g}\n {P}, line {ln}");
-							continue;
+						Log.Debug(f"{l.strip()} | gn: {gn} | g: {g}\n {P}, line {ln}");
 
-						typeData: str = ms[0].split(":");
-						if (len(typeData) < 2): continue; # I am horrible at regex
-						typeData = typeData[1].strip();
+						tdata: list[str] | None = None;
+						for ms in rVAR_Type.finditer(g if (gn == 3) else l):
+							tdata = ms[0].split(":");
+						# I don't know why, I don't wanna know why
+						# but re.findall is so fucking garbage we have to do this abomination
+
+						if (not tdata): continue;
+						if (len(tdata) < 2): continue; # I am horrible at regex
+						tData: str = tdata[1].strip();
 
 						lnG = 0;
 
@@ -103,7 +104,7 @@ class Get:
 						if (Functions[-1] not in Variables[g]["Count"].keys()): Variables[g]["Count"][Functions[-1]] = 0;
 						Variables[g]["Count"][Functions[-1]] += 1;
 
-						Variables[g]["Type"].add(typeData);
+						Variables[g]["Type"].add(tData);
 					else:
 						if (lnG == 0): lnG = 1; continue;
 						lnG = 1;
