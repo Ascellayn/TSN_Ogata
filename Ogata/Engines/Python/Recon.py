@@ -8,9 +8,9 @@ from ... import Type;
 rVAR: re.Pattern[str] = re.compile(r"([A-Za-z_\.]+(?=: [\S ]+ = ))|([[A-Za-z_\.]+(?= = ))|([A-Za-z_\.]+(?=: [\w\.\[\]\"\']+;$))|(?:(?<=def) \w+\()(.+(?=\):|\) ))");
 rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\] \|/]*(?==|;?$)");
 rVAR_For: re.Pattern[str] = re.compile(r"(?<=for )[a-zA-Z_, ]+(?= in)");
-rVAR_Func: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:/]+(?=$)");
+#rVAR_Func: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:/]+(?=$)");
 
-rCOMMENT: re.Pattern[str] = re.compile(r"#.*$");
+rCOMMENT: re.Pattern[str] = re.compile(r"(?:(?<=[ \t])#|^#).+(?=$)");
 rSTRING: re.Pattern[str] = re.compile(r"[\"\'][^\"\'\\]*(?:\\.[^\"\'\\]*)*[\"\']");
 
 rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()");
