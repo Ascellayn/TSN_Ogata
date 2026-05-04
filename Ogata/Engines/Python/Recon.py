@@ -8,7 +8,8 @@ from ... import Type;
 rVAR: re.Pattern[str] = re.compile(r"([A-Za-z_\.]+(?=: [\S ]+ = ))|([[A-Za-z_\.]+(?= = ))|([A-Za-z_\.]+(?=: [\w\.\[\]\"\']+;$))|(?:(?<=def) \w+\()(.+(?=\):|\) ))");
 rVAR_Type: re.Pattern[str] = re.compile(r"(?!:)(?:[A-Za-z_\.]*: )[a-zA-Z_,\.\[\] \|/]*(?==|;?$)");
 rVAR_For: re.Pattern[str] = re.compile(r"(?<=for )[a-zA-Z_, ]+(?= in)");
-#rVAR_Func: re.Pattern[str] = re.compile(r"(?<=[ \t])#[ \w\.\'\"\[\]\#\:/]+(?=$)");
+rVAR_Func: re.Pattern[str] = re.compile(r"^def [^\(]+\((.+)\)");
+rVAR_FuncArg: re.Pattern[str] = re.compile(r"(\w+)((?:: ).+)?");
 
 rCOMMENT: re.Pattern[str] = re.compile(r"(?:(?<=[ \t])#|^#).+(?=$)");
 rSTRING: re.Pattern[str] = re.compile(r"[\"\'][^\"\'\\]*(?:\\.[^\"\'\\]*)*[\"\']");
@@ -23,7 +24,7 @@ rIMPORT_Bool: re.Pattern[str] = re.compile(r"from.+|import.+");
 
 
 
-def _Digest_File(String: str) -> list[str]:
+def _Digest_File(String: str, noComments: bool = True) -> list[str]:
 	""" Returns a digestible file for Recon """
 	Data: list[str] = [x.replace("¤N¤", "\\n") for x in String.replace("\\n", "¤N¤").split("\n")];
 
@@ -36,8 +37,8 @@ def _Digest_File(String: str) -> list[str]:
 			# You could use math here to calculate the final state of inDSTR but I'm lazy
 			for i in range (len(quotes) - 1): # pyright: ignore[reportUnusedVariable]
 				inDSTR = False if (inDSTR) else True;
-				Data[ln] = f"";
-		if (inDSTR): Data[ln] = "";
+				Data[ln] = "" if (noComments) else "#";
+		if (inDSTR): Data[ln] = "" if (noComments) else "#";
 
 	return Data;
 
@@ -70,8 +71,34 @@ class Get:
 
 
 
+			"""
+			TBD, currently breaks too much
+			# Function Argument Detection
+			for m in rVAR_Func.finditer(l):
+				if (not m.group(1)): continue;
+				for arg in m.group(1).split(","):
+					for m_sub in rVAR_FuncArg.finditer(arg):
+						an: str = m_sub.group(1).strip();
+						if (an not in Variables.keys()): Variables[an] = {
+							"Path": [], "Line": [], "String": [],
+							"Count": {}, "Type": set(),
+							"Constant": an.isupper(), "Temporary": an.islower()
+						};
+						Variables[an]["Path"].append(P);
+						Variables[an]["Line"].append(ln);
+						Variables[an]["String"].append(l);
+						if (Functions[-1] not in Variables[an]["Count"].keys()): Variables[an]["Count"][Functions[-1]] = 0;
+						Variables[an]["Count"][Functions[-1]] += 1;
+
+						if (m_sub.group(2)):
+							Variables[an]["Type"].add(m_sub.group(2)[1:].strip());
+							# [1:] to remove the `:`, strip to remove the possible ` ` after the `:`
+			"""
+
+
+			# General Variable Detection
 			lnG: int = -1;
-			for m in rVAR.finditer(l): # pyright: ignore[reportUnusedVariable]
+			for m in rVAR.finditer(l):
 				for gn, g in enumerate(m.groups()):
 					# Validity Checks
 					if (not g or g == ""): continue;
@@ -209,7 +236,7 @@ class Get:
 
 	@staticmethod
 	def Spacings(P: str) -> list[Type.Recon_Base]:
-		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
+		Data: list[str] = _Digest_File(cast(str, File.Read(P)), False);
 
 		Spacings: list[Type.Recon_Base] = [];
 

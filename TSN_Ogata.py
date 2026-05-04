@@ -21,7 +21,7 @@ Warnings: list[str] = [];
 
 def Culprit(RC: Type.Recon_Base) -> str:
 	Text: str = "";
-	for i in range (len(RC["Path"])):
+	for i in range(len(RC["Path"])):
 		Text += f"File {RC['Path'][i]}, line {RC['Line'][i]}\n\t\"{RC['String'][i].strip()}\"\n";
 
 	return Text;
