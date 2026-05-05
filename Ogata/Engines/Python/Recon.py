@@ -137,17 +137,32 @@ class Get:
 						if (lnG == 0): lnG = 1; continue;
 						lnG = 1;
 
-						if (g not in Variables.keys()): Variables[g] = {
-							"Path": [], "Line": [], "String": [],
-							"Count": {}, "Type": set(),
-							"Constant": g.isupper(), "Temporary": g.islower()
-						};
+						# Variable Unpacking is not handled correctly unless we do THIS abomination! Python doesn't support typed variable unpacking so it's a pretty safe bet to run this only here
+						vars: list[str] = [];
+						buffer: str = ""; complex: int = 0;
+						for i, m in enumerate(rSTRING.finditer(l)): # Copy pasted courtesy of Semicolon, will need to be optimized later
+							if (i%2 != 0): continue; # Ignore when pair number because otherwise replaces things in between two quoted stuff which breaks everything
+							for c in l[:m.start()] + ("¤" * (m.end() - m.start())) + l[m.end():]:
+								if (c in ["[", "(", "{"]): complex += 1;
+								elif (c in ["]", ")", "}"]): complex -= 1;
+								if (c == "," and complex == 0): vars.append(buffer.strip()); buffer = "";
+								if (c == "="): vars.append(buffer.strip()); break;
+								buffer += c;
+						del buffer; del complex;
 
-						Variables[g]["Path"].append(P);
-						Variables[g]["Line"].append(ln);
-						Variables[g]["String"].append(l);
-						if (Functions[-1] not in Variables[g]["Count"].keys()): Variables[g]["Count"][Functions[-1]] = 0;
-						Variables[g]["Count"][Functions[-1]] += 1;
+						for v in vars:
+							if (v not in Variables.keys()): Variables[v] = {
+								"Path": [], "Line": [], "String": [],
+								"Count": {}, "Type": set(),
+								"Constant": v.isupper(), "Temporary": v.islower()
+							};
+
+							Variables[v]["Path"].append(P);
+							Variables[v]["Line"].append(ln);
+							Variables[v]["String"].append(l);
+							if (Functions[-1] not in Variables[v]["Count"].keys()): Variables[v]["Count"][Functions[-1]] = 0;
+							Variables[v]["Count"][Functions[-1]] += 1;
+						del vars;
 
 				Log.Debug(f"{ln} {m.start()}:{m.end()} @ {m.group()}");
 
