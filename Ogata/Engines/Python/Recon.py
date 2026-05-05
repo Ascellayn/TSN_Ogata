@@ -231,8 +231,15 @@ class Get:
 		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
 
 		Fors: list[Type.Recon_For] = [];
-		for ln, l in enumerate(Data, start=1):
-			for m in rVAR_For.finditer(l):
+		for ln, l in enumerate(Data, start=1): # Strip out comments
+			lt: str = l;
+			for i, m in enumerate(rSTRING.finditer(l)):
+				if (i%2 != 0): continue; # Ignore when pair number because otherwise replaces things in between two quoted stuff which breaks everything
+				lt = lt[:m.start()] + ("¤" * (m.end() - m.start())) + lt[m.end():];
+			for m in rCOMMENT.finditer(lt):
+				lt = lt[:m.start()];
+
+			for m in rVAR_For.finditer(lt):
 				string: str = l[m.start():m.end()];
 				if (not string.islower()):
 					for var in string.split(", "):
