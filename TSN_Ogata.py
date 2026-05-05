@@ -131,5 +131,8 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 
 
 if (__name__ == "__main__"):
+	Config.Logger.File_Level = 15;
+	Config.Logger.File = True;
+	Log.Delete();
 	TSN_Abstracter.App_Init(True);
 	Execute();

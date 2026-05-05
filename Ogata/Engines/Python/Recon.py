@@ -11,8 +11,8 @@ rVAR_For: re.Pattern[str] = re.compile(r"(?<=for )[a-zA-Z_, ]+(?= in)");
 rVAR_Func: re.Pattern[str] = re.compile(r"^def [^\(]+\((.+)\)");
 rVAR_FuncArg: re.Pattern[str] = re.compile(r"(\w+)((?:: ).+)?");
 
-rCOMMENT: re.Pattern[str] = re.compile(r"(?:(?<=[ \t])#|^#).+(?=$)");
-rSTRING: re.Pattern[str] = re.compile(r"[\"\'][^\"\'\\]*(?:\\.[^\"\'\\]*)*[\"\']");
+rCOMMENT: re.Pattern[str] = re.compile(r"(?:(?<=[ \t])#|^#).+(?=$)", flags=re.MULTILINE);
+rSTRING: re.Pattern[str] = re.compile(r"(?<=([\"\']))(?:(?=(\\?))\2.)*?(?=\1)");
 
 rFUNCTION: re.Pattern[str] = re.compile(r"(?<=def )[A-Za-z_]+(?=\()");
 
@@ -158,31 +158,48 @@ class Get:
 	@staticmethod
 	def Semicolon(P: str) -> list[Type.Recon_Base]:
 		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
+		Data_LT: list[str] = [];
 
+
+		# I shouldn't be allowed to write Python anymore. God is dead and we're all in hell being tormented
 		Semicolons: list[Type.Recon_Base] = [];
-		for ln, l in enumerate(Data):
-			for m in rSTRING.finditer(l): # Replace all content inside strings with something else in the case that a sneaky # is in...
-				for i in range(m.start(), m.end()):
-					if (l[i:i + 1] != "#"): continue;
-					l = l[:i] + "¤" + l[i + 1:];
-			for m in rCOMMENT.finditer(l):
+		for ln, l in enumerate(Data): # Strip out comments
+			lt: str = l;
+			for i, m in enumerate(rSTRING.finditer(l)):
+				if (i%2 != 0): continue; # Ignore when pair number because otherwise replaces things in between two quoted stuff which breaks everything
+				Log.Debug(f"GROUPS: {m.groups()} | START: {m.start()} - END: {m.end()} | IN QUOTES: {m.group()}\nLINE: {l}\nFINE: {lt[:m.start()] + ("¤" * (m.end() - m.start())) + lt[m.end():]}");
+				lt = lt[:m.start()] + ("¤" * (m.end() - m.start())) + lt[m.end():];
+
+			for m in rCOMMENT.finditer(lt):
+				Log.Debug(f"GROUP: {m.group()} | START: {m.start()} - END: {m.end()}\nLT:\t{lt}\nL :\t{l}\nF :{l[:m.start()]}");
 				l = l[:m.start()];
 
 			Data[ln] = l.strip();
+			Data_LT.append(lt);
+
+		#File.Write(f"DEBUG_{Time.Get_Unix(True)}.txt", f"\n".join(Data));
+		#File.Write(f"DEBUG-LT_{Time.Get_Unix(True)}.txt", f"\n".join(Data_LT));
+		del lt; # pyright: ignore[reportPossiblyUnboundVariable]
+
+
 
 		Complex: int = 0;
 		for ln, l in enumerate(Data, start=1):
 			if (l == ""): continue;
-
 			if (l.startswith("@")): Log.Debug(f"Ignored: {l}"); continue;
 			if (l.endswith(":")): Log.Debug(f"Ignored: {l}"); continue;
 
-			if (any(l.endswith(x) for x in ["[", "{", "(", ","])): Complex += 1; Log.Debug(f"Complex: Ignored {l}"); continue;
-			if (any(x in l for x in ["]", "}", ")"])): Complex -= 1; Log.Debug(f"Complex: {l}");
-			if (Complex < 0): Complex = 0;
-			if (Complex > 0): continue;
+
+			pcomplex: int = Complex;
+			for c in Data_LT[ln - 1]:
+				if (c in ["[", "(", "{"]): Complex += 1;
+				elif (c in ["]", ")", "}"]): Complex -= 1;
+
+			if (pcomplex != Complex): Log.Debug(f"Post Complex: {pcomplex} → {Complex} ({pcomplex - Complex})\nFile {P}, line {ln}\n\t{l}");
+			del pcomplex;
 
 
+			if (Complex > 0): Log.Debug(f"Complex [{Complex}] Ignored: {l}"); continue;
 			if (not l.endswith(";")):
 				Semicolons.append(cast(Type.Recon_Base, {
 					"Path": [P],
