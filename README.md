@@ -1,6 +1,6 @@
 <p align="center">
 	<img src="https://sirio-network.com/Root/Banner/Unknown.png" alt="Ogata Banner">
-	<h2 align="center">TSN Ogata, The Sirio Network's Linter</h2>
+	<h2 align="center">Ogata, The Sirio Network's Feral Linter</h2>
 </p>
 <p align="center">
 	IN EXTREMELY HEAVY WORK IN PROGRESS, DO NOT USE FOR NOW
@@ -27,6 +27,13 @@ It doesn't help that this project is currently rushed as fast as possible to hav
 Name is based off [Kanna Ogata](https://bluearchive.wiki/wiki/Kanna), the feral hound of the KSPD from Blue Archive. Makes sense because honestly even I am scared of this linter.  
 
 
+<br>
+
+### Note of warning for the poor souls reading the code
+I'm in a rush and it shows. The codebase is unironically THE WORST from TSN since Kosaka v2.X, read at your own risk.  
+I do intend on cleaning up the codebase later once I'm more free to work on my own things.
+
+
 <br><br><br><br><br>
 
-###### [TSN "Ogata" © Ascellayn / The Sirio Network (2026) - TSN License 2.1 Base](./LICENSE.md)
+###### [TSN "Ogata" © Ascellayn / The Sirio Network (2026) - TSN License 2.2 Base](./LICENSE.md)
