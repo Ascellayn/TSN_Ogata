@@ -1,9 +1,9 @@
 {
 	"Name": "Ogata",
-	"Description": "Ogata is The Sirio Network's Linter. In HEAVY work in progress! To not be used in critical applications yet.",
+	"Description": "The Sirio Network's Feral Linter. In HEAVY work in progress! To not be used in critical applications yet.\nOgata is NOT recommended to be used willingly outside of TSN Projects. The coding style applied is NON-STANDARD and shouldn't be used in bigger more serious projects.",
 	"Author": ["Ascellayn", "The Sirio Network"],
 	"Contributors": [],
-	"License": "TSN License 2.1 - Base",
+	"License": "TSN License 2.2 - Base",
 	"License_Year": "2026",
 	"Codename": "TSN_Ogata",
 	"Branch": "Azure",
