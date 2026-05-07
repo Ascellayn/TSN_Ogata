@@ -15,7 +15,7 @@ class Ogata_Config(TypedDict):
 class Recon_Base(TypedDict):
 	Path: list[str];
 	Line: list[int];
-	String: list[str];
+	Strings: list[str];
 
 class Recon_Variable(Recon_Base):
 	Count: dict[str, int];

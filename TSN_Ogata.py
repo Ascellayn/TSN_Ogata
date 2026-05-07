@@ -22,7 +22,7 @@ Warnings: list[str] = [];
 def Culprit(RC: Type.Recon_Base) -> str:
 	Text: str = "";
 	for i in range(len(RC["Path"])):
-		Text += f"File {RC['Path'][i]}, line {RC['Line'][i]}\n\t\"{RC['String'][i].strip()}\"\n";
+		Text += f"File {RC['Path'][i]}, line {RC['Line'][i]}\n\t\"{RC['Strings'][i].strip()}\"\n";
 
 	return Text;
 
@@ -109,7 +109,7 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 	for e in Semicolons: Errors.append(f"Missing Semicolon!\n{Culprit(e)}");
 	for e in Fors: Errors.append(f"Variable \"{e["Variable"]}\" used in For Loop isn't Lowercase!\n{Culprit(e)}");
 	for e in Whitespaces: Errors.append(f"Spaces are used instead of tabs!\nFile {e['Path'][0]}, line {e['Line'][0]}");
-	for e in Spacings: Errors.append(f"Bad spacing: Must be 0, 3, 5, 8 or 10 linebreaks long, got {e['String'][0]}.\nFile {e['Path'][0]}, line {e['Line'][0]}");
+	for e in Spacings: Errors.append(f"Bad spacing: Must be 0, 3, 5, 8 or 10 linebreaks long, got {e['Strings'][0]}.\nFile {e['Path'][0]}, line {e['Line'][0]}");
 
 	for warning in Warnings: Log.Warning(warning);
 	for error in Errors: Log.Error(error);
@@ -132,5 +132,6 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 
 if (__name__ == "__main__"):
 	Config.Logger.File_Level = 15;
+	Config.Logger.File = True;
 	TSN_Abstracter.App_Init(True);
 	Execute();

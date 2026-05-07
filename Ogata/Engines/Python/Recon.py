@@ -71,31 +71,6 @@ class Get:
 
 
 
-			"""
-			TBD, currently breaks too much
-			# Function Argument Detection
-			for m in rVAR_Func.finditer(l):
-				if (not m.group(1)): continue;
-				for arg in m.group(1).split(","):
-					for m_sub in rVAR_FuncArg.finditer(arg):
-						an: str = m_sub.group(1).strip();
-						if (an not in Variables.keys()): Variables[an] = {
-							"Path": [], "Line": [], "String": [],
-							"Count": {}, "Type": set(),
-							"Constant": an.isupper(), "Temporary": an.islower()
-						};
-						Variables[an]["Path"].append(P);
-						Variables[an]["Line"].append(ln);
-						Variables[an]["String"].append(l);
-						if (Functions[-1] not in Variables[an]["Count"].keys()): Variables[an]["Count"][Functions[-1]] = 0;
-						Variables[an]["Count"][Functions[-1]] += 1;
-
-						if (m_sub.group(2)):
-							Variables[an]["Type"].add(m_sub.group(2)[1:].strip());
-							# [1:] to remove the `:`, strip to remove the possible ` ` after the `:`
-			"""
-
-
 			# General Variable Detection
 			lnG: int = -1;
 			for m in rVAR.finditer(l):
@@ -105,12 +80,12 @@ class Get:
 					if (g.startswith("Config.")): continue; # Ignore TSNA Config.*
 
 					Log.Debug(f"lnG: {lnG} - gn: {gn} - g: {g}");
-					if (gn in [0, 2, 3]):
+					if (gn in [0, 2]):
 						if (g in ["else", "elif", "self"]): continue; # Banned "detected variable names"
 						Log.Debug(f"{l.strip()} | gn: {gn} | g: {g}\n {P}, line {ln}");
 
 						tdata: list[str] | None = None;
-						for ms in rVAR_Type.finditer(g if (gn == 3) else l):
+						for ms in rVAR_Type.finditer(g if (gn == 3) else l): # TODO: redundant, need to remove / optimize: Function Args are handled separately now
 							tdata = ms[0].split(":");
 						# I don't know why, I don't wanna know why
 						# but re.findall is so fucking garbage we have to do this abomination
@@ -122,17 +97,49 @@ class Get:
 						lnG = 0;
 
 						if (g not in Variables.keys()): Variables[g] = {
-							"Path": [], "Line": [], "String": [],
+							"Path": [], "Line": [], "Strings": [],
 							"Count": {}, "Type": set(),
 							"Constant": g.isupper(), "Temporary": g.islower()
 						};
 						Variables[g]["Path"].append(P);
 						Variables[g]["Line"].append(ln);
-						Variables[g]["String"].append(l);
+						Variables[g]["Strings"].append(l);
 						if (Functions[-1] not in Variables[g]["Count"].keys()): Variables[g]["Count"][Functions[-1]] = 0;
 						Variables[g]["Count"][Functions[-1]] += 1;
 
 						Variables[g]["Type"].add(tData);
+
+
+
+					elif (gn == 3): # Function Arguments
+						# Multi argument functions are a pain to detect properly so we have to do it the slow ass way...
+						vars: list[str] = [];
+						buffer: str = ""; complex: int = 0; nobuff: bool = False;
+						for c in g:
+							if (c in ["[", "(", "{"]): complex += 1;
+							elif (c in ["]", ")", "}"]): complex -= 1;
+							if (c == "," and complex == 0): vars.append(buffer.strip()); buffer = ""; nobuff = False; continue;
+							if (c == "="): vars.append(buffer.strip()); nobuff = True;
+							if (not nobuff): buffer += c;
+						del buffer; del complex;
+						for v in vars:
+							pairs: list[str] = v.split(":", 1);
+							if (pairs[0] not in Variables.keys()): Variables[pairs[0]] = {
+								"Path": [], "Line": [], "Strings": [],
+								"Count": {}, "Type": set(),
+								"Constant": pairs[0].isupper(), "Temporary": pairs[0].islower()
+							};
+							Variables[pairs[0]]["Path"].append(P);
+							Variables[pairs[0]]["Line"].append(ln);
+							Variables[pairs[0]]["Strings"].append(l);
+							if (Functions[-1] not in Variables[pairs[0]]["Count"].keys()): Variables[pairs[0]]["Count"][Functions[-1]] = 0;
+							Variables[pairs[0]]["Count"][Functions[-1]] += 1;
+
+							if (len(pairs) == 2): Variables[pairs[0]]["Type"].add(pairs[1].strip());
+
+
+
+
 					else:
 						if (lnG == 0): lnG = 1; continue;
 						lnG = 1;
@@ -152,14 +159,14 @@ class Get:
 
 						for v in vars:
 							if (v not in Variables.keys()): Variables[v] = {
-								"Path": [], "Line": [], "String": [],
+								"Path": [], "Line": [], "Strings": [],
 								"Count": {}, "Type": set(),
 								"Constant": v.isupper(), "Temporary": v.islower()
 							};
 
 							Variables[v]["Path"].append(P);
 							Variables[v]["Line"].append(ln);
-							Variables[v]["String"].append(l);
+							Variables[v]["Strings"].append(l);
 							if (Functions[-1] not in Variables[v]["Count"].keys()): Variables[v]["Count"][Functions[-1]] = 0;
 							Variables[v]["Count"][Functions[-1]] += 1;
 						del vars;
@@ -219,7 +226,7 @@ class Get:
 				Semicolons.append(cast(Type.Recon_Base, {
 					"Path": [P],
 					"Line": [ln],
-					"String": [l]
+					"Strings": [l]
 				}));
 
 		return Semicolons;
@@ -246,7 +253,7 @@ class Get:
 						Fors.append(cast(Type.Recon_For, {
 							"Path": [P],
 							"Line": [ln],
-							"String": [l],
+							"Strings": [l],
 							"Variable": var
 						}));
 		return Fors;
@@ -266,7 +273,7 @@ class Get:
 				Whitespaces.append(cast(Type.Recon_Base, {
 					"Path": [P],
 					"Line": [ln],
-					"String": [string]
+					"Strings": [string]
 				}));
 
 		return Whitespaces;
@@ -289,7 +296,7 @@ class Get:
 					Spacings.append({
 						"Path": [P],
 						"Line": [ln],
-						"String": [str(cspacing)]
+						"Strings": [str(cspacing)]
 					});
 				cspacing = 0;
 			if (len(rFUNCTION.findall(l)) > 0):
@@ -298,7 +305,7 @@ class Get:
 					Spacings.append({
 						"Path": [P],
 						"Line": [ln],
-						"String": [str(cspacing)]
+						"Strings": [str(cspacing)]
 					});
 
 			# Decorator Case
@@ -308,7 +315,7 @@ class Get:
 					Spacings.append({
 						"Path": [P],
 						"Line": [ln],
-						"String": [str(cspacing)]
+						"Strings": [str(cspacing)]
 					});
 			cspacing = 0;
 
