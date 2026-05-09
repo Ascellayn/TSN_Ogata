@@ -78,6 +78,7 @@ class Get:
 					# Validity Checks
 					if (not g or g == ""): continue;
 					if (g.startswith("Config.")): continue; # Ignore TSNA Config.*
+					if (g.startswith("App.")): continue; # Ignore TSNA App.*
 
 					Log.Debug(f"lnG: {lnG} - gn: {gn} - g: {g}");
 					if (gn in [0, 2]):
