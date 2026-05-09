@@ -214,7 +214,7 @@ class Get:
 			if (l == ""): continue;
 			if (l.startswith("@")): Log.Debug(f"Ignored: {l}"); continue;
 			if (l.endswith(":")): Log.Debug(f"Ignored: {l}"); continue;
-
+			if (l.endswith(F"\\")): Log.Debug(f"Ignored: {l}"); continue;
 
 			pcomplex: int = Complex;
 			for c in Data_LT[ln - 1]:
