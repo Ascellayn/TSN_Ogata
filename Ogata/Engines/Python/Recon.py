@@ -145,12 +145,15 @@ class Get:
 						if (lnG == 0): lnG = 1; continue;
 						lnG = 1;
 
+						lt = l.split(":", 1)[1].strip() if (l.strip().startswith("case")) else l;
+
+
 						# Variable Unpacking is not handled correctly unless we do THIS abomination! Python doesn't support typed variable unpacking so it's a pretty safe bet to run this only here
 						vars: list[str] = [];
 						buffer: str = ""; complex: int = 0;
-						for i, m in enumerate(rSTRING.finditer(l)): # Copy pasted courtesy of Semicolon, will need to be optimized later
+						for i, m in enumerate(rSTRING.finditer(lt)): # Copy pasted courtesy of Semicolon, will need to be optimized later
 							if (i%2 != 0): continue; # Ignore when pair number because otherwise replaces things in between two quoted stuff which breaks everything
-							for c in l[:m.start()] + ("¤" * (m.end() - m.start())) + l[m.end():]:
+							for c in lt[:m.start()] + ("¤" * (m.end() - m.start())) + l[m.end():]:
 								if (c in ["[", "(", "{"]): complex += 1;
 								elif (c in ["]", ")", "}"]): complex -= 1;
 								if (c == "," and complex == 0): vars.append(buffer.strip()); buffer = "";
