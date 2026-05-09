@@ -81,7 +81,7 @@ class Get:
 
 					Log.Debug(f"lnG: {lnG} - gn: {gn} - g: {g}");
 					if (gn in [0, 2]):
-						if (g in ["else", "elif", "self"]): continue; # Banned "detected variable names"
+						if (g in ["else", "elif", "self", "case"]): continue; # Banned "detected variable names"
 						Log.Debug(f"{l.strip()} | gn: {gn} | g: {g}\n {P}, line {ln}");
 
 						tdata: list[str] | None = None;
