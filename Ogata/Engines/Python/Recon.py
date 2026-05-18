@@ -20,6 +20,8 @@ rWHITESPACE: re.Pattern[str] = re.compile(r"^[\t ]+(?=\w)");
 
 rIMPORT_Bool: re.Pattern[str] = re.compile(r"from.+|import.+");
 
+rTYPED_DICTS: re.Pattern[str] = re.compile(r"^class.*\((?:TypedDict|(?:pydantic\.)?BaseModel)\):");
+
 
 
 
@@ -51,23 +53,37 @@ class Get:
 
 		Variables: dict[str, Type.Recon_Variable] = {};
 		Functions: list[str] = ["--ROOT--"];
+		inTypedDict: bool = False;
 		White_Last: int = 0;
 
 		for ln, l in enumerate(Data, start=1):
 			# Function Context Detection
 			findfunc: list[str] = rFUNCTION.findall(l);
-			white_next: list[str] = rWHITESPACE.findall(Data[min(ln, len(Data) - 1)]); # Remeber ln starts at 1 not 0
-			white_curr: list[str] = rWHITESPACE.findall(Data[ln - 1]);
+
+			wc: list[str] = rWHITESPACE.findall(Data[ln - 1]); # Remeber ln starts at 1 not 0
+			wn: list[str] = rWHITESPACE.findall(Data[min(ln, len(Data) - 1)]);
+
+			white_next: int = len(wn[0]) if (len(wn) != 0) else 0;
+			white_current: int = len(wc[0]) if (len(wc) != 0) else 0; 
+
 
 			if (len(findfunc) > 0):
 				Functions.append(findfunc[0]);
-				if (len(white_next) > 0):
-					White_Last = len(white_next[0]);
+				White_Last = white_next;
 			else:
-				if (len(white_curr) > 0):
-					if (len(white_curr[0]) < White_Last):
-						White_Last = len(white_curr[0]);
-						Functions.pop();
+				if (white_current < White_Last):
+					White_Last = white_current;
+					Functions.pop();
+
+
+
+			earlyExit: bool = False;
+			for m in rTYPED_DICTS.finditer(l): inTypedDict = True; earlyExit = True; break;
+			# NOT AGAIN WHYYYYYYYYYYYYYYYY DO YOU CURSE ME TO WRITE OSHA-VIOLATING CODE
+			if (earlyExit): continue;
+
+			if (inTypedDict and white_current != white_next): inTypedDict = False; continue;
+			if (inTypedDict): continue;
 
 
 
