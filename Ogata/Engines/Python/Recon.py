@@ -20,7 +20,8 @@ rWHITESPACE: re.Pattern[str] = re.compile(r"^[\t ]+(?=\w)");
 
 rIMPORT_Bool: re.Pattern[str] = re.compile(r"from.+|import.+");
 
-rTYPED_DICTS: re.Pattern[str] = re.compile(r"^class.*\((?:TypedDict|(?:pydantic\.)?BaseModel)\):");
+rCLASSES: re.Pattern[str] = re.compile(r"^class (.*)\((.+)\):");
+TypedDict_Classes: list[str] = ["typing.TypedDict", "TypedDict", "pydantic.BaseModel", "BaseModel"];
 
 
 
@@ -78,8 +79,12 @@ class Get:
 
 
 			earlyExit: bool = False;
-			for m in rTYPED_DICTS.finditer(l): inTypedDict = True; earlyExit = True; break;
-			# NOT AGAIN WHYYYYYYYYYYYYYYYY DO YOU CURSE ME TO WRITE OSHA-VIOLATING CODE
+			for m in rCLASSES.finditer(l): # NOT AGAIN WHYYYYYYYYYYYYYYYY DO YOU CURSE ME TO WRITE OSHA-VIOLATING CODE
+				if (m.group(2) in TypedDict_Classes): # ONCE AGAIN .findall IS BUGGED AND DOESNT WORK SO WE'RE FORCED TO MAKE A FOR LOOP
+					inTypedDict = True; earlyExit = True;
+					TypedDict_Classes.append(m.group(1));
+					break;
+
 			if (earlyExit): continue;
 
 			if (inTypedDict and white_current != white_next): inTypedDict = False; continue;
