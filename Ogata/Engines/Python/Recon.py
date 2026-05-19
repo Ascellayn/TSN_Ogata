@@ -47,25 +47,61 @@ def _Digest_File(String: str, noComments: bool = True) -> list[str]:
 
 
 
+def _Whitespaces(String: str) -> list[int]:
+	""" Normalizes DocString Whitespaces """
+	Data: list[str] = [x.replace("¤N¤", "\\n") for x in String.replace("\\n", "¤N¤").split("\n")];
+	Whitespaces: list[int] = [];
+
+	DcSTR_Count: int = 0; Unbuffer: bool = False;
+	for l in Data:
+		Log.Debug(f"{l}\nDcSTR: {DcSTR_Count} | Unbuffer: {Unbuffer}");
+		quotes: list[str] = l.split(f"\"\"\"");
+
+		if (len(quotes) == 2 and DcSTR_Count == 0): DcSTR_Count += 1; continue;
+		if (len(quotes) == 2 and DcSTR_Count != 0): DcSTR_Count += 1; Unbuffer = True; continue;
+		if (len(quotes) == 3): DcSTR_Count += 1; Unbuffer = True; continue;
+		if (DcSTR_Count != 0 and not Unbuffer): DcSTR_Count += 1; continue;
+
+		whitespaces: int = 0;
+		for m in rWHITESPACE.finditer(l): # More cursed finditer bs
+			whitespaces = len(m.group());
+			break;
+		Whitespaces.append(whitespaces);
+	
+		if (Unbuffer):
+			while (DcSTR_Count != 0): Whitespaces.append(whitespaces); DcSTR_Count -= 1;
+			Unbuffer = False;
+
+	return Whitespaces;
+
+
+
+
 class Get:
 	@staticmethod
 	def Variables(P: str) -> dict[str, Type.Recon_Variable]:
-		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
+		file_data: str = cast(str, File.Read(P));
+
+		Data: list[str] = _Digest_File(file_data);
+		Whitespaces: list[int] = _Whitespaces(file_data);
+
+		del file_data;
+
+
 
 		Variables: dict[str, Type.Recon_Variable] = {};
 		Functions: list[str] = ["--ROOT--"];
 		inTypedDict: bool = False;
 		White_Last: int = 0;
 
+
+
 		for ln, l in enumerate(Data, start=1):
 			# Function Context Detection
 			findfunc: list[str] = rFUNCTION.findall(l);
 
-			wc: list[str] = rWHITESPACE.findall(Data[ln - 1]); # Remeber ln starts at 1 not 0
-			wn: list[str] = rWHITESPACE.findall(Data[min(ln, len(Data) - 1)]);
-
-			white_next: int = len(wn[0]) if (len(wn) != 0) else 0;
-			white_current: int = len(wc[0]) if (len(wc) != 0) else 0; 
+			white_next: int = Whitespaces[min(ln, len(Whitespaces) - 1)];
+			white_current: int = Whitespaces[ln - 1]; 
 
 
 			if (len(findfunc) > 0):
