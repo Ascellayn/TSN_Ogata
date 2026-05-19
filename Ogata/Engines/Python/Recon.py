@@ -325,19 +325,19 @@ class Get:
 	def Whitespaces(P: str) -> list[Type.Recon_Base]:
 		Data: list[str] = _Digest_File(cast(str, File.Read(P)));
 
-		Whitespaces: list[Type.Recon_Base] = [];
+		rcWhitespaces: list[Type.Recon_Base] = [];
 		for ln, l in enumerate(Data, start=1):
 			for m in rWHITESPACE.finditer(l):
 				string: str = l[m.start():m.end()];
 				if (" " not in string): continue;
 
-				Whitespaces.append(cast(Type.Recon_Base, {
+				rcWhitespaces.append(cast(Type.Recon_Base, {
 					"Path": [P],
 					"Line": [ln],
 					"Strings": [string]
 				}));
 
-		return Whitespaces;
+		return rcWhitespaces;
 
 
 

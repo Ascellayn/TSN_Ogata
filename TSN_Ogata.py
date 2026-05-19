@@ -4,11 +4,11 @@ from Ogata import *;
 
 
 
-Variables: dict[str, Type.Recon_Variable] = {};
-Semicolons: list[Type.Recon_Base] = [];
-Fors: list[Type.Recon_For] = [];
-Whitespaces: list[Type.Recon_Base] = [];
-Spacings: list[Type.Recon_Base] = [];
+rcVariables: dict[str, Type.Recon_Variable] = {};
+rcSemicolons: list[Type.Recon_Base] = [];
+rcFors: list[Type.Recon_For] = [];
+rcWhitespaces: list[Type.Recon_Base] = [];
+rcSpacings: list[Type.Recon_Base] = [];
 
 Processed: int = 0;
 Processed_Unix: float;
@@ -59,31 +59,31 @@ def Execute() -> bool:
 def Verify(Ogata: Type.Ogata_Config) -> bool:
 	global Processed_Unix; Processed_Unix = Time.Get_Unix(True);
 	def Recon_Recursive(P: str) -> None:
-		global Processed, Semicolons, Fors, Whitespaces, Spacings;
+		global Processed, rcSemicolons, rcFors, rcWhitespaces, rcSpacings;
 		l: File.Folder_Contents = File.List(P);
 		for f in l[1]:
 			if (f.endswith(".py")):
 				Processed += 1;
 
 				Recon_Concat_Variables(Python.Recon.Get.Variables(f"{P}/{f}"));
-				Semicolons += Python.Recon.Get.Semicolon(f"{P}/{f}");
-				Fors += Python.Recon.Get.Fors(f"{P}/{f}");
-				Whitespaces += Python.Recon.Get.Whitespaces(f"{P}/{f}");
-				Spacings += Python.Recon.Get.Spacings(f"{P}/{f}");
+				rcSemicolons += Python.Recon.Get.Semicolon(f"{P}/{f}");
+				rcFors += Python.Recon.Get.Fors(f"{P}/{f}");
+				rcWhitespaces += Python.Recon.Get.Whitespaces(f"{P}/{f}");
+				rcSpacings += Python.Recon.Get.Spacings(f"{P}/{f}");
 
 		for f in l[0]: Recon_Recursive(f"{P}/{f}");
 
 
 
 	def Recon_Concat_Variables(V: dict[str, Type.Recon_Variable]) -> None:
-		global Variables;
+		global rcVariables;
 		for key in V.keys():
-			if (not key in Variables.keys()): Variables[key] = V[key];
+			if (not key in rcVariables.keys()): rcVariables[key] = V[key];
 			else:
 				for func in V[key]["Count"].keys():
-					if (func in Variables[key]["Count"]): Variables[key]["Count"][func] += V[key]["Count"][func];
-					else: Variables[key]["Count"][func] = V[key]["Count"][func];
-				for t in V[key]["Type"]: Variables[key]["Type"].add(t);
+					if (func in rcVariables[key]["Count"]): rcVariables[key]["Count"][func] += V[key]["Count"][func];
+					else: rcVariables[key]["Count"][func] = V[key]["Count"][func];
+				for t in V[key]["Type"]: rcVariables[key]["Type"].add(t);
 
 
 
@@ -92,7 +92,7 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 
 	for w in Ogata["Watch"]: Recon_Recursive(f"{w}");
 
-	for var in Variables.items():
+	for var in rcVariables.items():
 		if (var[1]["Temporary"]): continue;
 		if (len(var[1]["Type"]) == 0): Errors.append(f"{var[0]}: Undefined Type! \n{Culprit(var[1])}");
 		if (len(var[1]["Type"]) > 1): Errors.append(f"{var[0]}: Type redefined {len(var[1]['Type'])} times! ({', '.join(var[1]['Type'])})\n{Culprit(var[1])}");
@@ -103,13 +103,13 @@ def Verify(Ogata: Type.Ogata_Config) -> bool:
 			if ("Any" in t): Warnings.append(f"{var[0]}: Type \"{t}\" contains \"Any\" which is discouraged.\n{Culprit(var[1])}");
 
 	# debug: to be removed
-	for key in Variables.keys(): Variables[key]["Type"] = list(Variables[key]["Type"]); # pyright: ignore[reportGeneralTypeIssues]
-	File.JSON_Write("DEBUG.json", Variables);
+	for key in rcVariables.keys(): rcVariables[key]["Type"] = list(rcVariables[key]["Type"]); # pyright: ignore[reportGeneralTypeIssues]
+	File.JSON_Write("DEBUG.json", rcVariables);
 
-	for e in Semicolons: Errors.append(f"Missing Semicolon!\n{Culprit(e)}");
-	for e in Fors: Errors.append(f"Variable \"{e["Variable"]}\" used in For Loop isn't Lowercase!\n{Culprit(e)}");
-	for e in Whitespaces: Errors.append(f"Spaces are used instead of tabs!\nFile {e['Path'][0]}, line {e['Line'][0]}");
-	for e in Spacings: Errors.append(f"Bad spacing: Must be 0, 3, 5, 8 or 10 linebreaks long, got {e['Strings'][0]}.\nFile {e['Path'][0]}, line {e['Line'][0]}");
+	for e in rcSemicolons: Errors.append(f"Missing Semicolon!\n{Culprit(e)}");
+	for e in rcFors: Errors.append(f"Variable \"{e["Variable"]}\" used in For Loop isn't Lowercase!\n{Culprit(e)}");
+	for e in rcWhitespaces: Errors.append(f"Spaces are used instead of tabs!\nFile {e['Path'][0]}, line {e['Line'][0]}");
+	for e in rcSpacings: Errors.append(f"Bad spacing: Must be 0, 3, 5, 8 or 10 linebreaks long, got {e['Strings'][0]}.\nFile {e['Path'][0]}, line {e['Line'][0]}");
 
 	for warning in Warnings: Log.Warning(warning);
 	for error in Errors: Log.Error(error);
